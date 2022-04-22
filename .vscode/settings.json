@@ -1,10 +1,15 @@
 {
-    "makefile.extensionOutputFolder": "./.vscode",
-    "makefile.launchConfigurations": [
-        {
-            "cwd": "/mnt/d/Repos_Skola/IOS/H2O-building",
-            "binaryPath": "/mnt/d/Repos_Skola/IOS/H2O-building/proj2",
-            "binaryArgs": ["4","4","5","5"]
-        }
-    ]
+  "makefile.extensionOutputFolder": "./.vscode",
+  "makefile.launchConfigurations": [
+    {
+      "cwd": "/mnt/d/Repos_Skola/IOS/H2O-building",
+      "binaryPath": "/mnt/d/Repos_Skola/IOS/H2O-building/proj2",
+      "binaryArgs": [
+        "2",
+        "4",
+        "1000",
+        "1000"
+      ]
+    }
+  ]
 }

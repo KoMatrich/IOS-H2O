@@ -1,40 +1,15 @@
-1: A: O 1: started
-2: A: O 2: started
-3: A: O 1: going to queue
-4: A: O 4: started
-5: A: O 2: going to queue
-6: A: O 3: started
-7: A: O 5: started
-8: A: O 4: going to queue
-9: A: O 6: started
-10: A: O 3: going to queue
-11: A: O 7: started
-12: A: H 2: started
-13: A: O 5: going to queue
-14: A: O 9: started
-15: A: O 10: started
-16: A: O 6: going to queue
-17: A: H 1: started
-18: A: O 8: started
-19: A: H 9: started
-20: A: H 3: started
-21: A: H 2: going to queue
-22: A: H 4: started
-23: A: H 5: started
-24: A: O 9: going to queue
-25: A: H 6: started
-26: A: O 10: going to queue
-27: A: H 7: started
-28: A: H 8: started
-29: A: H 1: going to queue
-30: A: O 7: going to queue
-31: A: O 8: going to queue
-32: A: H 10: started
-33: A: H 9: going to queue
-34: A: H 3: going to queue
-35: A: H 4: going to queue
-36: A: H 5: going to queue
-37: A: H 6: going to queue
-38: A: H 7: going to queue
-39: A: H 8: going to queue
-40: A: H 10: going to queue
+1: O 1: started
+2: O 2: started
+3: H 1: started
+4: H 2: started
+5: O 1: going to queue
+6: O 2: going to queue
+7: H 1: going to queue
+8: H 2: going to queue
+9: H 1: creating molecule 1
+10: H 2: creating molecule 1
+11: O 1: creating molecule 1
+12: H 1: finished creating molecule 1
+13: H 2: finished creating molecule 1
+14: O 1: finished creating molecule 1
+15: O 2: not enought H

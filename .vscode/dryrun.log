@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 /usr/bin/make proj2 --dry-run --keep-going --print-directory
-=======
-/usr/bin/make all --dry-run --always-make --keep-going --print-directory
->>>>>>> 9e2664f6f93132da142cf00898639f64256e42cd
 make: Entering directory '/mnt/d/Repos_Skola/IOS/H2O-building'
-make: 'proj2' is up to date.
+gcc -std=gnu99 -Wall -Wextra -Werror -pedantic -g -lrt -pthread -o proj2 proj2.c
 make: Leaving directory '/mnt/d/Repos_Skola/IOS/H2O-building'
  

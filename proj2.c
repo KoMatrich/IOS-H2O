@@ -23,7 +23,7 @@ static FILE *file; // file output
 int shmid;         // shared memory id
 
 static uint no, nh, ti, tb; // input arguments
-static const int oxy_c = 1, hyd_c = 2;
+static const uint OXY_C = 1, HYC_C = 2;
 
 // check if string is unsigned int
 bool isUInt(char *in)
@@ -50,8 +50,8 @@ typedef struct
     sem_t facWait;  // semaphore for factory
 
     pthread_mutex_t countM; // atom counter mutex
-    int hydWC;              // count of waiting hydrogen atoms
-    int oxyWC;              // count of waiting oxygen atoms
+    uint hydWC;             // count of waiting hydrogen atoms
+    uint oxyWC;             // count of waiting oxygen atoms
 
     sem_t hydWait;      // semaphore for waiting hydrogen atoms
     sem_t oxyWait;      // semaphore for waiting oxygen atoms
@@ -131,11 +131,10 @@ void processArgs(int argc, char **argv)
     // checks if all arguments are unsigned integers
     for (uint i = 1; i <= 4; ++i)
     {
-        bool allInt = isUInt(argv[i]);
-        if (!allInt)
+        if (!isUInt(argv[i]))
         {
             fprintf(stderr,
-                    "%d. entered argument '%s' have to be positive integers.\n", i,
+                    "%d. entered argument '%s' have to be positive integer.\n", i,
                     argv[i]);
             exit(1);
         }
@@ -146,10 +145,10 @@ void processArgs(int argc, char **argv)
     ti = atoi(argv[3]);
     tb = atoi(argv[4]);
 
-    // zero check
-    if (!((no > 0) && (nh > 0) && (ti > 0) && (tb > 0)))
+    // limit check
+    if ((ti > 1000) || (tb > 1000))
     {
-        fprintf(stderr, "Entered numbers have to be nonzero numbers.\n");
+        fprintf(stderr, "Entered numbers for time have to be less than 1000.\n");
         exit(1);
     }
 }
@@ -207,12 +206,12 @@ void runInit()
     srand(time(0));
 }
 
-void atom2molecule(shmDataT *data, char type, int id)
+void atom2molecule(shmDataT *data, char type, uint id)
 {
-    printToFile(data, "A: %c %d: creating molecule %d\n", type, id, data->molecules);
+    printToFile(data, "%c %d: creating molecule %d\n", type, id, data->molecules);
     // wait for creation of molecule, factory will unlock it
     sem_wait(&data->creationWait);
-    printToFile(data, "A: %c %d: finished creating molecule %d\n", type, id, data->molecules);
+    printToFile(data, "%c %d: finished creating molecule %d\n", type, id, data->molecules);
     // unlock for next atom, factory will lock it
     sem_post(&data->creationWait);
     // signal atom is in molecule
@@ -221,17 +220,16 @@ void atom2molecule(shmDataT *data, char type, int id)
 
 void oxygen(int seed, pid_t id, shmDataT *data)
 {
-    printToFile(data, "A: O %d: started\n", id);
+    printToFile(data, "O %d: started\n", id);
 
     srand(seed);
     usleep(rand() % ti);
-    printToFile(data, "A: O %d: going to queue\n", id);
+    printToFile(data, "O %d: going to queue\n", id);
 
     // lock counters, increment get copy of them, unlock
     pthread_mutex_lock(&data->countM);
-    int hyd = data->hydWC;
-    int oxy = data->oxyWC++;
-    if (hyd >= hyd_c && oxy == oxy_c)
+    data->oxyWC++;
+    if (data->hydWC >= HYC_C && data->oxyWC == OXY_C)
     {
         sem_post(&data->facWait);
     }
@@ -244,23 +242,22 @@ void oxygen(int seed, pid_t id, shmDataT *data)
     }
     else
     {
-        printToFile(data, "A: O %d: not enought H\n", id);
+        printToFile(data, "O %d: not enought H\n", id);
         sem_post(&data->oxyWait);
     }
 }
 
 void hydrogen(int seed, pid_t id, shmDataT *data)
 {
-    printToFile(data, "A: H %d: started\n", id);
+    printToFile(data, "H %d: started\n", id);
 
     srand(seed);
     usleep(rand() % ti);
-    printToFile(data, "A: H %d: going to queue\n", id);
+    printToFile(data, "H %d: going to queue\n", id);
 
     pthread_mutex_lock(&data->countM);
-    int hyd = data->hydWC++;
-    int oxy = data->oxyWC;
-    if (hyd == hyd_c && oxy >= oxy_c)
+    data->hydWC++;
+    if (data->hydWC == HYC_C && data->oxyWC >= OXY_C)
     {
         sem_post(&data->facWait);
     }
@@ -273,7 +270,7 @@ void hydrogen(int seed, pid_t id, shmDataT *data)
     }
     else
     {
-        printToFile(data, "A: H %d: not enought O\n", id);
+        printToFile(data, "H %d: not enought O or H\n", id);
         sem_post(&data->hydWait);
     }
 }
@@ -282,13 +279,13 @@ void createMolecule(shmDataT *data)
 {
     // increments molecule counter
     data->molecules++;
-    data->hydWC -= hyd_c;
-    data->oxyWC -= oxy_c;
+    data->hydWC -= HYC_C;
+    data->oxyWC -= OXY_C;
 
     // triger creation of new molecule
-    for (int i = 0; i < hyd_c; i++)
+    for (uint i = 0; i < HYC_C; i++)
         sem_post(&data->hydWait);
-    for (int i = 0; i < oxy_c; i++)
+    for (uint i = 0; i < OXY_C; i++)
         sem_post(&data->oxyWait);
 
     // wait time required to create new molecule
@@ -299,7 +296,7 @@ void createMolecule(shmDataT *data)
     sem_post(&data->creationWait);
 
     // checks if all molecules were created
-    for (int i = 0; i < hyd_c + oxy_c; i++)
+    for (uint i = 0; i < HYC_C + OXY_C; i++)
         sem_wait(&data->facWait);
 
     // lock creationWait queue
@@ -310,26 +307,28 @@ void factory(shmDataT *data)
 {
     while (!data->done)
     {
-        // wait for factory to be woken up
-        sem_wait(&data->facWait);
-        // lock counters
-        pthread_mutex_lock(&data->countM);
-
-        // while there enought atoms to create molecule create molecules
-        while (data->hydWC >= hyd_c && data->oxyWC >= oxy_c)
-        {
-            createMolecule(data);
-        }
-
-        // checks if there are enough atoms for next molecule
-        if (data->molecules * hyd_c >= nh || data->molecules * oxy_c >= no)
+        if (data->molecules * HYC_C + HYC_C > nh || data->molecules * OXY_C + OXY_C > no)
         {
             // not enough atoms for next molecule
             data->done = true;
             // free all remaining atoms
             sem_post(&data->hydWait);
             sem_post(&data->oxyWait);
+            return;
         }
+
+        // wait for factory to be woken up
+        sem_wait(&data->facWait);
+        // lock counters
+        pthread_mutex_lock(&data->countM);
+
+        // while there enought atoms to create molecule create molecules
+        while (data->hydWC >= HYC_C && data->oxyWC >= OXY_C)
+        {
+            createMolecule(data);
+        }
+
+        // checks if there are enough atoms for next molecule
         pthread_mutex_unlock(&data->countM);
     }
 }
@@ -383,11 +382,10 @@ int main(int argc, char **argv)
     shmDataT *shmp = shmat(shmid, NULL, 0);
     factory(shmp);
 
-    // wait for all to finish
+    // wait for all children to finish
     while (wait(NULL) > 0)
         ;
 
-    printToFile(shmp, "ALL done (remove)\n");
     fclose(file);
     des(shmp);
     exit(0);
