@@ -55,6 +55,7 @@ typedef struct
 
     sem_t hydWait;      // semaphore for waiting hydrogen atoms
     sem_t oxyWait;      // semaphore for waiting oxygen atoms
+
     sem_t creationWait; // semaphore for waiting creation of molecule
 } shmDataT;
 
@@ -206,6 +207,18 @@ void runInit()
     srand(time(0));
 }
 
+void atom2molecule(shmDataT *data, char type, int id)
+{
+    printToFile(data, "A: %c %d: creating molecule %d\n", type, id, data->molecules);
+    // wait for creation of molecule, factory will unlock it
+    sem_wait(&data->creationWait);
+    printToFile(data, "A: %c %d: finished creating molecule %d\n", type, id, data->molecules);
+    // unlock for next atom, factory will lock it
+    sem_post(&data->creationWait);
+    // signal atom is in molecule
+    sem_post(&data->facWait);
+}
+
 void oxygen(int seed, pid_t id, shmDataT *data)
 {
     printToFile(data, "A: O %d: started\n", id);
@@ -216,22 +229,18 @@ void oxygen(int seed, pid_t id, shmDataT *data)
 
     // lock counters, increment get copy of them, unlock
     pthread_mutex_lock(&data->countM);
-    int oxy = data->oxyWC++;
     int hyd = data->hydWC;
-    pthread_mutex_unlock(&data->countM);
-
-    if (hyd == hyd_c && oxy == oxy_c)
+    int oxy = data->oxyWC++;
+    if (hyd >= hyd_c && oxy == oxy_c)
     {
         sem_post(&data->facWait);
     }
+    pthread_mutex_unlock(&data->countM);
 
     sem_wait(&data->oxyWait);
     if (!data->done)
     {
-        int molecule = data->molecules;
-        printToFile(data, "A: O %d: creating molecule %d\n", id, molecule);
-        sem_wait(&data->creationWait);
-        printToFile(data, "A: O %d: finished creating molecule %d\n", id, molecule);
+        atom2molecule(data, 'O', id);
     }
     else
     {
@@ -251,20 +260,16 @@ void hydrogen(int seed, pid_t id, shmDataT *data)
     pthread_mutex_lock(&data->countM);
     int hyd = data->hydWC++;
     int oxy = data->oxyWC;
-    pthread_mutex_unlock(&data->countM);
-
-    if (hyd == hyd_c && oxy == oxy_c)
+    if (hyd == hyd_c && oxy >= oxy_c)
     {
         sem_post(&data->facWait);
     }
+    pthread_mutex_unlock(&data->countM);
 
     sem_wait(&data->hydWait);
     if (!data->done)
     {
-        int molecule = data->molecules;
-        printToFile(data, "A: H %d: creating molecule %d\n", id, molecule);
-        sem_wait(&data->creationWait);
-        printToFile(data, "A: H %d: finished creating molecule %d\n", id, molecule);
+        atom2molecule(data, 'H', id);
     }
     else
     {
@@ -277,24 +282,28 @@ void createMolecule(shmDataT *data)
 {
     // increments molecule counter
     data->molecules++;
-    // creates new molecule
     data->hydWC -= hyd_c;
+    data->oxyWC -= oxy_c;
+
+    // triger creation of new molecule
     for (int i = 0; i < hyd_c; i++)
         sem_post(&data->hydWait);
-
-    data->oxyWC -= oxy_c;
     for (int i = 0; i < oxy_c; i++)
         sem_post(&data->oxyWait);
 
-    // time to create new molecule
+    // wait time required to create new molecule
     usleep(random() % tb);
 
-    // signal that molecule is created
-    for (int i = 0; i < hyd_c; i++)
-        sem_post(&data->creationWait);
+    // unlock creationWait queue
+    // finish creation of molecule
+    sem_post(&data->creationWait);
 
-    for (int i = 0; i < oxy_c; i++)
-        sem_post(&data->creationWait);
+    // checks if all molecules were created
+    for (int i = 0; i < hyd_c + oxy_c; i++)
+        sem_wait(&data->facWait);
+
+    // lock creationWait queue
+    sem_wait(&data->creationWait);
 }
 
 void factory(shmDataT *data)
@@ -342,7 +351,7 @@ int main(int argc, char **argv)
         {
             shmDataT *shmp = shmat(shmid, NULL, 0);
             oxygen(seed, i, shmp);
-            // shmdt(shmp);
+            shmdt(shmp);
             exit(EXIT_SUCCESS);
         }
         if (id < 0)
@@ -360,7 +369,7 @@ int main(int argc, char **argv)
         {
             shmDataT *shmp = shmat(shmid, NULL, 0);
             hydrogen(seed, i, shmp);
-            // shmdt(shmp);
+            shmdt(shmp);
             exit(EXIT_SUCCESS);
         }
         if (id < 0)
@@ -372,8 +381,8 @@ int main(int argc, char **argv)
 
     // factory process
     shmDataT *shmp = shmat(shmid, NULL, 0);
-    // factory(shmp);¨
-    // shmdt(shmp);
+    factory(shmp);
+    shmdt(shmp);
 
     // wait for all to finish
     while (wait(NULL) > 0)
