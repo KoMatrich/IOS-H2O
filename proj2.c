@@ -47,13 +47,13 @@ typedef struct
     uint molecules;        // number of created molecules
     sem_t facWait;         // semaphore for factory
 
-    uint hydWC;            // count of waiting hydrogen atoms
-    pthread_mutex_t hydCM; // hydrogen count mutex
-    sem_t hydWait;         // semaphore for waiting hydrogen atoms
+    pthread_mutex_t countM; // atom counter mutex
+    int hydWC;              // count of waiting hydrogen atoms
+    int oxyWC;              // count of waiting oxygen atoms
 
-    uint oxyWC;            // count of waiting oxygen atoms
-    pthread_mutex_t oxyCM; // oxygen count mutex
+    sem_t hydWait;         // semaphore for waiting hydrogen atoms
     sem_t oxyWait;         // semaphore for waiting oxygen atoms
+    sem_t creationWait;    // semaphore for waiting creation of molecule
 } shmDataT;
 
 void init(shmDataT *data)
@@ -61,6 +61,7 @@ void init(shmDataT *data)
     sem_init(&data->facWait, 0, 0);
     sem_init(&data->hydWait, 0, 0);
     sem_init(&data->oxyWait, 0, 0);
+    sem_init(&data->creationWait, 0, 0);
     data->actionCount = 0;
     data->done = false;
     data->hydWC = 0;
@@ -71,11 +72,11 @@ void init(shmDataT *data)
 void des(shmDataT *data)
 {
     pthread_mutex_destroy(&data->fileM);
-    pthread_mutex_destroy(&data->hydCM);
-    pthread_mutex_destroy(&data->oxyCM);
+    pthread_mutex_destroy(&data->countM);
     sem_destroy(&data->facWait);
     sem_destroy(&data->oxyWait);
     sem_destroy(&data->hydWait);
+    sem_destroy(&data->creationWait);
     shmdt(data);
 }
 
@@ -85,17 +86,11 @@ static inline void printToFile(shmDataT *data, const char *fmt, ...)
     // locks writing to file or wait until is free
     pthread_mutex_lock(&data->fileM);
 
-    // get link to shared memory
-    shmDataT *shmp = shmat(shmid, NULL, 0);
-    fprintf(file, "%d: ", shmp->actionCount);
-    shmp->actionCount++;
-    // unlink pointer to shared memory
-    if (shmdt(shmp) == -1)
-    {
-        perror("shmdt");
-        exit(1);;
-    }
+    // prints action index
+    fprintf(file, "%d: ", data->actionCount);
+    data->actionCount++;
 
+    // prints message
     va_list args;
     va_start(args, fmt);
     vfprintf(file, fmt, args);
@@ -103,6 +98,7 @@ static inline void printToFile(shmDataT *data, const char *fmt, ...)
 
     // flush everything to file
     fflush(file);
+    // leave empty buffer
 
     pthread_mutex_unlock(&data->fileM);
 }
@@ -110,7 +106,16 @@ static inline void printToFile(shmDataT *data, const char *fmt, ...)
 // process args and saves them to global variables
 void processArgs(int argc, char **argv)
 {
-    if (argc != 5)
+    if (argc == 1)
+    {
+        fprintf(stderr, "Usage: %s <no> <nh> <ti> <tb>\n", argv[0]);
+        fprintf(stderr, "no - number of oxygen atoms\n");
+        fprintf(stderr, "nh - number of hydrogen atoms\n");
+        fprintf(stderr, "ti - time interval for atom to join molecule creation que\n");
+        fprintf(stderr, "tb - time interval for molecule creation\n");
+        exit(1);
+    }
+    else if (argc != 5)
     {
         fprintf(stderr, "Wrong number of arguments. (%d of 4)\n", argc - 1);
         exit(1);
@@ -177,7 +182,7 @@ void runInit(){
         exit(1);
     }
 
-    if (pthread_mutex_init(&shmp->hydCM, NULL) != 0)
+    if (pthread_mutex_init(&shmp->countM, NULL) != 0)
     {
         fclose(file);
         pthread_mutex_destroy(&shmp->fileM);
@@ -185,30 +190,6 @@ void runInit(){
         shmdt(shmp);
         exit(1);
     }
-
-    if (pthread_mutex_init(&shmp->oxyCM, NULL) != 0)
-    {
-        fclose(file);
-        pthread_mutex_destroy(&shmp->fileM);
-        pthread_mutex_destroy(&shmp->hydCM);
-        printf("mutex init failed\n");
-        shmdt(shmp);
-        exit(1);
-    }
-
-    if (shmdt(shmp) == -1)
-    {
-        fclose(file);
-        pthread_mutex_destroy(&shmp->fileM);
-        pthread_mutex_destroy(&shmp->hydCM);
-        pthread_mutex_destroy(&shmp->oxyCM);
-        perror("shmdt\n");
-        shmdt(shmp);
-        exit(1);
-    }
-
-
-
     // sets random generator of main process
     srand(time(0));
 }
@@ -217,29 +198,32 @@ void oxygen(int seed, pid_t id, shmDataT *data){
     printToFile(data, "A: O %d: started\n", id);
 
     srand(seed);
-    usleep(rand() % tb);
+    usleep(rand() % ti);
     printToFile(data, "A: O %d: going to queue\n", id);
 
-    return;
-
-    pthread_mutex_lock(&data->oxyCM);
+    // lock counters, increment get copy of them, unlock
+    pthread_mutex_lock(&data->countM);
     int oxy = data->oxyWC++;
     int hyd = data->hydWC;
+    pthread_mutex_unlock(&data->countM);
 
-    if (hyd >= hyd_c && oxy >= oxy_c)
+    if (hyd == hyd_c && oxy == oxy_c)
     {
         sem_post(&data->facWait);
     }
-    pthread_mutex_unlock(&data->oxyCM);
 
-    if (!data->done){
-        sem_wait(&data->oxyWait);
+    sem_wait(&data->oxyWait);
+    if (!data->done)
+    {
         int molecule = data->molecules;
         printToFile(data, "A: O %d: creating molecule %d\n", id, molecule);
-        usleep(rand() % tb);
+        sem_wait(&data->creationWait);
         printToFile(data, "A: O %d: finished creating molecule %d\n", id, molecule);
-    }else{
+    }
+    else
+    {
         printToFile(data, "A: O %d: not enought H\n", id);
+        sem_post(&data->oxyWait);
     }
 }
 
@@ -250,49 +234,80 @@ void hydrogen(int seed, pid_t id, shmDataT *data){
     usleep(rand() % ti);
     printToFile(data, "A: H %d: going to queue\n", id);
 
-    return;
-
-    pthread_mutex_lock(&data->hydCM);
+    pthread_mutex_lock(&data->countM);
     int hyd = data->hydWC++;
     int oxy = data->oxyWC;
+    pthread_mutex_unlock(&data->countM);
 
-    if (hyd >= hyd_c && oxy >= oxy_c)
+    if (hyd == hyd_c && oxy == oxy_c)
     {
         sem_post(&data->facWait);
     }
-    pthread_mutex_unlock(&data->hydCM);
 
-    if (!data->done){
-        sem_wait(&data->hydWait);
+    sem_wait(&data->hydWait);
+    if (!data->done)
+    {
         int molecule = data->molecules;
         printToFile(data, "A: H %d: creating molecule %d\n", id, molecule);
-        usleep(rand() % tb);
+        sem_wait(&data->creationWait);
         printToFile(data, "A: H %d: finished creating molecule %d\n", id, molecule);
-    }else{
+    }
+    else
+    {
         printToFile(data, "A: H %d: not enought O\n", id);
+        sem_post(&data->hydWait);
     }
 }
 
-void factory(shmDataT *data){
-    while(!data->done){
+void createMolecule(shmDataT *data)
+{
+    // increments molecule counter
+    data->molecules++;
+    // creates new molecule
+    data->hydWC -= hyd_c;
+    for (int i = 0; i < hyd_c; i++)
+        sem_post(&data->hydWait);
+
+    data->oxyWC -= oxy_c;
+    for (int i = 0; i < oxy_c; i++)
+        sem_post(&data->oxyWait);
+
+    // time to create new molecule
+    usleep(random() % tb);
+
+    // signal that molecule is created
+    for (int i = 0; i < hyd_c; i++)
+        sem_post(&data->creationWait);
+
+    for (int i = 0; i < oxy_c; i++)
+        sem_post(&data->creationWait);
+}
+
+void factory(shmDataT *data)
+{
+    while (!data->done)
+    {
+        // wait for factory to be woken up
         sem_wait(&data->facWait);
+        // lock counters
+        pthread_mutex_lock(&data->countM);
 
-        pthread_mutex_lock(&data->hydCM);
-        pthread_mutex_lock(&data->oxyCM);
-        data->molecules++;
+        // while there enought atoms to create molecule create molecules
+        while (data->hydWC >= hyd_c && data->oxyWC >= oxy_c)
+        {
+            createMolecule(data);
+        }
 
-        data->hydWC -= hyd_c;
-        for(int i = 0; i < hyd_c; i++)
-            sem_post(&data->hydWait);
-
-        data->oxyWC -= oxy_c;
-        for(int i = 0; i < oxy_c; i++)
-            sem_post(&data->oxyWait);
-
+        // checks if there are enough atoms for next molecule
         if (data->molecules * hyd_c >= nh || data->molecules * oxy_c >= no)
+        {
+            // not enough atoms for next molecule
             data->done = true;
-        pthread_mutex_unlock(&data->oxyCM);
-        pthread_mutex_unlock(&data->hydCM);
+            // free all remaining atoms
+            sem_post(&data->hydWait);
+            sem_post(&data->oxyWait);
+        }
+        pthread_mutex_unlock(&data->countM);
     }
 }
 

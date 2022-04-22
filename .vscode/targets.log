@@ -1,4 +1,4 @@
-make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+/usr/bin/make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Apr 21 14:43:53 2022
+# Make data base, printed on Fri Apr 22 11:24:20 2022
 
 # Variables
 
@@ -51,15 +51,13 @@ VSCODE_CWD = /mnt/c/Users/KoMatrich/AppData/Local/Programs/Microsoft VS Code
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
-PATH = /home/komatrich/.vscode-server/bin/dfd34e8260c270da74b5c2d86d61aee4b6d56977/bin/remote-cli:/home/komatrich/.local/bin:/home/komatrich/miniconda3/bin:/home/komatrich/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0:/mnt/c/WINDOWS/System32/OpenSSH:/mnt/c/Program Files/Microsoft SQL Server/150/Tools/Binn:/mnt/c/Program Files (x86)/Bitvise SSH Client:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA NvDLISR:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Git/cmd:/mnt/c/xampp/php:/mnt/c/Users/KoMatrich/miniconda3/condabin:/mnt/c/Program Files/dotnet:/mnt/c/Program Files (x86)/ZeroTier/One:/mnt/c/Program Files/PowerShell/7:/mnt/c/Program Files (x86)/dotnet:/mnt/c/Users/KoMatrich/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/KoMatrich/.dotnet/tools:/mnt/c/ProgramData/KoMatrich/GitHubDesktop/bin:/mnt/c/Users/KoMatrich/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/KoMatrich/.dotnet/tools:/mnt/c/Users/KoMatrich/AppData/Local/GitHubDesktop/bin:/snap/bin
+PATH = /home/komatrich/.vscode-server/bin/dfd34e8260c270da74b5c2d86d61aee4b6d56977/bin/remote-cli:/home/komatrich/.local/bin:/home/komatrich/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Microsoft SQL Server/150/Tools/Binn/:/mnt/c/Program Files (x86)/Bitvise SSH Client:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA NvDLISR:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Git/cmd:/mnt/c/xampp/php:/mnt/c/Users/KoMatrich/miniconda3/condabin:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files (x86)/ZeroTier/One/:/mnt/c/Program Files/PowerShell/7/:/mnt/c/Users/KoMatrich/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/KoMatrich/.dotnet/tools:/mnt/c/ProgramData/KoMatrich/GitHubDesktop/bin:/mnt/c/Users/KoMatrich/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/KoMatrich/.dotnet/tools:/mnt/c/Users/KoMatrich/AppData/Local/GitHubDesktop/bin:/snap/bin
 # environment
 XDG_RUNTIME_DIR = /mnt/wslg/runtime-dir
 # environment
-CONDA_PREFIX = /home/komatrich/miniconda3
-# environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-1fd4bf49-0916-4fcb-a503-e150cdd3380a.sock
+VSCODE_IPC_HOOK_CLI = /mnt/wslg/runtime-dir/vscode-ipc-93cc727c-b8f8-4b34-aae7-06324127ac44.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -69,15 +67,13 @@ LS_COLORS = rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:
 # environment
 DISPLAY = :0
 # environment
-CONDA_EXE = /home/komatrich/miniconda3/bin/conda
-# environment
 VSCODE_PIPE_LOGGING = true
 # environment
 PWD = /mnt/d/Repos_Skola/IOS/H2O-building
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/14_interop
+WSL_INTEROP = /run/WSL/11_interop
 # environment
 PULSE_SERVER = /mnt/wslg/PulseServer
 # environment
@@ -91,21 +87,15 @@ LOGNAME = komatrich
 # environment
 APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
-CONDA_PROMPT_MODIFIER = (base) 
-# environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
 # environment
 MAKELEVEL := 0
-# environment
-CONDA_DEFAULT_ENV = base
 # default
 MAKE = $(MAKE_COMMAND)
 # default
 MAKECMDGOALS := all
-# environment
-CONDA_SHLVL = 1
 # environment
 SHLVL = 0
 # makefile (from 'Makefile', line 1)
@@ -123,7 +113,7 @@ NAME = Black-Box
 # environment
 VSCODE_WSL_EXT_LOCATION = /mnt/c/Users/KoMatrich/.vscode/extensions/ms-vscode-remote.remote-wsl-0.66.0
 # default
-MAKE_COMMAND := make
+MAKE_COMMAND := /usr/bin/make
 # default
 .VARIABLES := 
 # automatic
@@ -145,8 +135,6 @@ MAKEFILES :=
 # environment
 LC_ALL = C
 # environment
-CONDA_PYTHON_EXE = /home/komatrich/miniconda3/bin/python
-# environment
 HOSTTYPE = x86_64
 # automatic
 ^F = $(notdir $^)
@@ -154,8 +142,6 @@ HOSTTYPE = x86_64
 SUFFIXES := 
 # environment
 WAYLAND_DISPLAY = wayland-0
-# environment
-_CE_M = 
 # default
 .INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
 # default
@@ -168,10 +154,8 @@ TERM = xterm-256color
 VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 WSL_DISTRO_NAME = Ubuntu
-# environment
-_CE_CONDA = 
 # variable set hash-table stats:
-# Load=80/1024=8%, Rehash=0, Collisions=6/112=5%
+# Load=72/1024=7%, Rehash=0, Collisions=4/104=4%
 
 # Pattern-specific Variable Values
 
@@ -179,9 +163,9 @@ _CE_CONDA =
 
 # Directories
 
-# . (device 66, inode 5629499534227197): 8 files, no impossibilities.
+# . (device 66, inode 5629499534227197): 10 files, no impossibilities.
 
-# 8 files, no impossibilities in 1 directories.
+# 10 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -227,7 +211,7 @@ Makefile:
 # Not a target:
 proj2.c:
 #  Implicit rule search has been done.
-#  Last modified 2022-04-21 14:23:04.8518302
+#  Last modified 2022-04-21 17:49:44.3062283
 #  File has been updated.
 #  Successfully updated.
 
@@ -248,7 +232,7 @@ clean:
 proj2: proj2.c
 #  Implicit rule search has not been done.
 #  Implicit/static pattern stem: ''
-#  File does not exist.
+#  Last modified 2022-04-21 17:44:49.697292
 #  File has been updated.
 #  Needs to be updated (-q is set).
 # automatic
@@ -277,16 +261,15 @@ proj2: proj2.c
 # VPATH Search Paths
 
 # No 'vpath' search paths.
- 
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 17 / storage = 158 B / avg = 9 B
-# current buf: size = 8162 B / used = 158 B / count = 17 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 18 / storage = 163 B / avg = 9 B
+# current buf: size = 8162 B / used = 163 B / count = 18 / avg = 9 B
 
-# strcache performance: lookups = 33 / hit rate = 48%
+# strcache performance: lookups = 35 / hit rate = 48%
 # hash-table stats:
-# Load=17/8192=0%, Rehash=0, Collisions=1/33=3%
-# Finished Make data base on Thu Apr 21 14:43:53 2022
+# Load=18/8192=0%, Rehash=0, Collisions=1/35=3%
+# Finished Make data base on Fri Apr 22 11:24:20 2022
 
  

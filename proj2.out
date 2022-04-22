@@ -1,32 +1,6 @@
 0: A: O 1: started
-1: A: O 1: going to queue
-2: A: O 12: started
-3: A: O 18: started
-4: A: O 24: started
-5: A: O 33: started
-6: A: O 40: started
-7: A: O 47: started
-8: A: O 54: started
-9: A: O 60: started
-10: A: O 66: started
-11: A: O 71: started
-12: A: O 80: started
-13: A: O 86: started
-14: A: O 93: started
-15: A: H 1: started
-16: A: H 11: started
-17: A: H 17: started
-18: A: H 23: started
-19: A: H 30: started
-20: A: H 36: started
-21: A: H 42: started
-22: A: H 50: started
-23: A: H 56: started
-24: A: H 62: started
-25: A: H 69: started
-26: A: H 75: started
-27: A: H 81: started
-28: A: H 87: started
-29: A: H 93: started
-30: A: H 98: started
-31: A: H 98: going to queue
+1: A: O 6: started
+2: A: H 1: started
+3: A: H 6: started
+4: A: H 10: started
+5: A: H 10: going to queue
