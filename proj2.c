@@ -61,10 +61,10 @@ typedef struct
 
 void init(shmDataT *data)
 {
-    sem_init(&data->facWait, 0, 0);
-    sem_init(&data->hydWait, 0, 0);
-    sem_init(&data->oxyWait, 0, 0);
-    sem_init(&data->creationWait, 0, 0);
+    sem_init(&data->facWait, 1, 0);
+    sem_init(&data->hydWait, 1, 0);
+    sem_init(&data->oxyWait, 1, 0);
+    sem_init(&data->creationWait, 1, 0);
     data->actionCount = 1;
     data->done = false;
     data->hydWC = 0;
@@ -382,12 +382,10 @@ int main(int argc, char **argv)
     // factory process
     shmDataT *shmp = shmat(shmid, NULL, 0);
     factory(shmp);
-    shmdt(shmp);
 
     // wait for all to finish
     while (wait(NULL) > 0)
-    {
-    }
+        ;
 
     printToFile(shmp, "ALL done (remove)\n");
     fclose(file);
